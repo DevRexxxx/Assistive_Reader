@@ -6,6 +6,7 @@ export * from './components/StatsTab';
 export * from './components/GoalsTab';
 export * from './components/LicenseTab';
 export * from './components/ProgressRing';
+export * from './components/CalibrationWizard';
 export * from './components/CalibrationWizardModal';
 export * from './components/ReaderWorkspace';
 export * from './components/QuickMenuWidget';

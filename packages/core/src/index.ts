@@ -1,4 +1,5 @@
 export * from './profiles/schema';
+export * from './wizard';
 export * from './text/bionic';
 export * from './text/syllables';
 export * from './text/confusables';

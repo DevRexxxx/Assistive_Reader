@@ -5,396 +5,174 @@
 <h1 align="center">AssistiveReader</h1>
 
 <p align="center">
-  <strong>A premium Chrome Extension that transforms any webpage into an accessible, distraction-free reading experience for neurodivergent users.</strong>
+  <strong>A privacy-first, offline-capable accessibility reading suite for neurodivergent users — zero AI, zero telemetry, zero remote requests.</strong>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-5.0.0-blueviolet?style=flat-square" />
-  <img src="https://img.shields.io/badge/manifest-v3-blue?style=flat-square" />
-  <img src="https://img.shields.io/badge/react-18-61dafb?style=flat-square&logo=react" />
-  <img src="https://img.shields.io/badge/typescript-5-3178c6?style=flat-square&logo=typescript" />
-  <img src="https://img.shields.io/badge/tailwind-4-38bdf8?style=flat-square&logo=tailwindcss" />
-  <img src="https://img.shields.io/badge/vite-6-646CFF?style=flat-square&logo=vite" />
+  <code>React 18</code> · <code>TypeScript 5</code> · <code>Tailwind CSS 4</code> · <code>Vite 6</code> · <code>Chrome MV3 + Web PWA</code> · <code>WCAG 2.2 AA</code>
 </p>
 
 ---
 
-## ✨ Overview
+## Overview
 
-**AssistiveReader** is a full-featured accessibility suite designed specifically for people with ADHD, Dyslexia, Autism, and Color Vision Deficiencies. It runs entirely in your browser — no servers, no tracking, no cloud uploads — just pure, privacy-first accessibility.
+**AssistiveReader** provides customizable reading support for people with ADHD, dyslexia, autism, sensory sensitivity, and color vision deficiency. It runs 100% locally in both an offline-capable Web PWA reader workspace and a Chrome Manifest V3 extension, built around a shared pure-TypeScript core.
 
-The extension leverages Chrome's Side Panel API for its control interface, a background service worker for timer and stats management, and targeted content script injection for live DOM transformations — all synchronized via `chrome.storage.local`.
+### Non-Negotiable Guarantees
 
-## 📺 Demo Video
-
-Experience AssistiveReader v5.0 in action! See how it transforms the web for better accessibility:
-
-[**🎥 Watch the Demo Walkthrough**](https://drive.google.com/file/d/1dhgfxCAov_Ii9aOzfDsoTbvndR9IRQ_d/view?usp=drivesdk)
-
-### Key Highlights
-
-- 🧠 **3 Neurodivergent Personas** — One-click profiles for ADHD, Dyslexia, and Autism
-- 📖 **Bionic Reading** — Bold the first ~40% of every word for faster visual parsing
-- 🔊 **Text-to-Speech** — Read any page aloud with real-time word-by-word highlighting and adjustable speed (0.5x–2.0x)
-- 🌙 **Dark Mode** — Force a unified high-contrast dark theme on any website with automatic media counter-inversion
-- 🎨 **Color Vision Filters** — SVG `feColorMatrix` correction filters for Protanopia, Deuteranopia, and Tritanopia
-- ♿ **Quick Access Widget** — Floating button on every page for instant tool access
-- ⏱️ **Pomodoro Timer** — Built-in focus timer with automatic phase transitions, Chrome notifications, and session tracking
-- 🎯 **Goals & Stats** — Daily/weekly usage analytics with streak tracking and configurable targets
+- **Zero AI / Zero Cloud ML**: Every feature uses deterministic, rule-based algorithms (Liang-style hyphenation, TextRank extractive scoring, sRGB WCAG luminance math, readability formulas, and bundled lexicons).
+- **Zero Data Leaves the Device**: No analytics, telemetry, crash reporting, remote fonts, CDNs, or network calls. Enforced in CI by `scripts/check-no-network.mjs`.
+- **No Accounts Required**: Works completely offline out of the box.
+- **Local-First Speech Synthesis**: Inspects `voice.localService === true`, prefers on-device voices, and warns explicitly if only remote browser voices are detected.
+- **Offline Ed25519 Licensing**: Signed license keys (`AR1.<payload>.<sig>`) are verified locally with a pure-TypeScript RFC 8032 Ed25519 + SHA-512 verifier—no phone-home.
+- **Customizable Support Framing**: Features are presented as customizable reading support options to try, never as medical diagnoses, treatments, or cures.
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
-AssistiveReader is built on Chrome's **Manifest V3** platform with a clean 3-layer architecture:
-
-```
-┌──────────────────────────────────────────────┐
-│                Side Panel (React)             │
-│  ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐   │
-│  │Modes│ │Tools│ │Timer│ │Stats│ │Goals│   │
-│  └─────┘ └─────┘ └─────┘ └─────┘ └─────┘   │
-└──────────────────┬───────────────────────────┘
-                   │ chrome.runtime.sendMessage
-┌──────────────────▼───────────────────────────┐
-│          Background Service Worker            │
-│  • Message Router  • Pomodoro Timer           │
-│  • Stats Tracker   • Side Panel Controller    │
-│  • Streak Manager  • Goal Completion Checker  │
-└──────────────────┬───────────────────────────┘
-                   │ chrome.tabs.sendMessage
-┌──────────────────▼───────────────────────────┐
-│            Content Script (DOM)               │
-│  • Feature Modules  • Quick Menu Widget       │
-│  • State Auto-Apply • CSS/SVG Injection       │
-│  • MutationObserver • Keyboard Support        │
-└──────────────────────────────────────────────┘
-```
-
-### Communication Flow
-
-All three layers communicate through Chrome's messaging APIs and share state via `chrome.storage.local`:
-
-| Direction | API | Purpose |
-|---|---|---|
-| Side Panel → Background | `chrome.runtime.sendMessage` | Timer control, stats queries, persona forwarding |
-| Background → Content Script | `chrome.tabs.sendMessage` | DOM manipulation commands (persona CSS, bionic reading) |
-| Side Panel → Content Script | `chrome.tabs.sendMessage` | Direct feature toggles (tools, typography, color vision) |
-| Any Layer → Any Layer | `chrome.storage.onChanged` | Reactive state synchronization |
-
-### Tech Stack
-
-| Layer | Technology |
-|---|---|
-| **UI Framework** | React 18 + TypeScript 5 |
-| **Styling** | Tailwind CSS v4 + Custom CSS (glassmorphism, animations) |
-| **Build Tool** | Vite 6 with `@crxjs/vite-plugin` for HMR-enabled extension development |
-| **State** | `chrome.storage.local` + `chrome.storage.sync` (auto-sync across all layers) |
-| **Typography** | Inter (Google Fonts) |
-| **Extension API** | Chrome Manifest V3, Side Panel API, Notifications API, Alarms API |
-
----
-
-## 📁 Project Structure
+AssistiveReader separates deterministic domain logic from platform DOM/storage APIs across four modular layers:
 
 ```
 AssistiveReader/
-├── manifest.json                    # Chrome Extension manifest (MV3)
-├── package.json                     # Dependencies & scripts
-├── vite.config.ts                   # Vite build config with CRXJS plugin
-├── tsconfig.json                    # TypeScript compiler configuration
-├── tsconfig.node.json               # Node-specific TypeScript config
-├── .gitignore                       # Git ignore rules
-│
-├── public/
-│   └── icon.png                     # Extension icon / favicon (128×128)
-│
-├── scripts/
-│   └── generate-icons.mjs           # SVG icon generator for dev (16/48/128px)
+├── packages/
+│   ├── core/                      # Pure TypeScript (zero DOM, zero chrome.*, zero network)
+│   │   ├── src/profiles/schema.ts # Declarative Profile schema, built-in personas, validator
+│   │   ├── src/wizard.ts          # 4-step Calibration Wizard state machine & WCAG contrast math
+│   │   ├── src/text/
+│   │   │   ├── bionic.ts          # Word fixation anchors (~40% leading bold)
+│   │   │   ├── syllables.ts       # Liang-pattern syllable splitter + language pattern registry
+│   │   │   ├── confusables.ts     # Mirrored character highlighting (b / d / p / q)
+│   │   │   ├── sentences.ts       # Abbreviation/quote-aware splitter & chunk card builder
+│   │   │   ├── readability.ts     # Flesch Reading Ease, FK Grade, Gunning Fog, SMOG
+│   │   │   └── highlights.ts      # Extractive TextRank + TF key-sentence ranker
+│   │   ├── src/color/index.ts     # CVD feColorMatrix presets, tint overlays, saturation clamp
+│   │   ├── src/timer/pomodoro.ts  # Drift-free targetEndTimestamp Pomodoro state machine
+│   │   ├── src/stats/index.ts     # Daily/weekly rollover, freeze-day streaks, CSV/JSON backup
+│   │   ├── src/dictionary/        # Bundled offline dictionary with suffix stemmer
+│   │   ├── src/license/           # Pure-TS SHA-512 + Ed25519 offline key verifier
+│   │   └── src/__tests__/         # node:test unit suites (text, state, license, wizard)
+│   │
+│   ├── adapters/                  # Platform abstraction interfaces & implementations
+│   │   └── src/                   # LocalStorageAdapter, ChromeStorageAdapter,
+│   │                              # WebSpeechTTSAdapter, BrowserExportAdapter, LocalLicenseAdapter
+│   │
+│   ├── ui/                        # Shared React components & state store (WCAG 2.2 AA)
+│   │   └── src/
+│   │       ├── components/
+│   │       │   ├── AssistiveAppShell.tsx      # Unified Web PWA & Side Panel shell
+│   │       │   ├── ReaderWorkspace.tsx        # Local paste/file reader, modes, ruler, dictionary
+│   │       │   ├── CalibrationWizard.tsx      # Accessible 4-step font/spacing/color wizard
+│   │       │   ├── CalibrationWizardModal.tsx # Modal wrapper with Escape & backdrop dismissal
+│   │       │   ├── ModesTab.tsx               # Built-in & custom profiles + reading cues
+│   │       │   ├── ToolsTab.tsx               # Focus views, TTS controls, CVD, overlays, typography
+│   │       │   ├── TimerTab.tsx               # Timestamp Pomodoro UI with ProgressRing
+│   │       │   ├── StatsTab.tsx               # Daily/weekly charts, mode usage, JSON/CSV backup
+│   │       │   ├── GoalsTab.tsx               # Daily targets & freeze-day streak tracker
+│   │       │   ├── LicenseTab.tsx             # Offline Ed25519 license verification & demo key
+│   │       │   └── QuickMenuWidget.tsx        # Floating quick accessibility menu (♿)
+│   │       ├── data/sampleDocuments.ts        # Bundled offline sample guides & local parser
+│   │       └── state/useAssistiveStore.ts     # Reactive store wiring core + adapters
+│   │
+│   └── ext-chromium/
+│       └── vite.config.ts         # Chrome MV3 extension build config (@crxjs/vite-plugin)
 │
 ├── src/
-│   ├── vite-env.d.ts                # Vite client type declarations
-│   │
-│   ├── background/
-│   │   └── index.ts                 # Service worker: message router, pomodoro timer,
-│   │                                #   stats tracking, streak management
-│   │
-│   ├── content/
-│   │   ├── index.ts                 # Content script: message handler, auto-apply,
-│   │   │                            #   feature initialization on page load
-│   │   └── features/
-│   │       ├── colorVision.ts       # Unified dark mode, CVD filters, overlays, saturation
-│   │       ├── quickMenu.ts         # Floating ♿ action button with quick toggles
-│   │       ├── readerView.ts        # Clean article-only reading view with progress bar
-│   │       ├── readingRuler.ts      # Cursor-following line focus band (mouse + keyboard)
-│   │       ├── tts.ts               # Text-to-speech with charIndex word highlighting
-│   │       ├── toc.ts               # Auto-generated Table of Contents from h1–h3
-│   │       ├── typography.ts        # Font size, line height, letter spacing, contrast
-│   │       └── mediaHider.ts        # Blur media with MutationObserver for dynamic content
-│   │
-│   ├── sidepanel/
-│   │   ├── index.html               # Side panel HTML entry point
-│   │   ├── index.tsx                # React DOM mount point
-│   │   ├── SidePanel.tsx            # Main shell with tab bar, dark mode toggle, minimize
-│   │   └── components/
-│   │       ├── ModesTab.tsx          # Persona toggles (ADHD/Dyslexia/Autism) + Bionic Reading
-│   │       ├── ToolsTab.tsx          # Feature toggles + TTS speed + Color Vision + Typography
-│   │       ├── TimerTab.tsx          # Pomodoro timer UI with ProgressRing & duration presets
-│   │       ├── StatsTab.tsx          # Daily stats + 7-day weekly bar chart
-│   │       ├── GoalsTab.tsx          # Goal configuration + streak tracker + confetti
-│   │       └── ProgressRing.tsx      # Reusable SVG circular progress component
-│   │
-│   ├── styles/
-│   │   └── index.css                # Design system: CSS variables, animations,
-│   │                                #   glassmorphism, blob keyframes, utility classes
-│   │
-│   └── utils/
-│       ├── storage.ts               # Typed chrome.storage.local CRUD helpers
-│       │                            #   (DailyStats, GoalConfig, StreakData, TimerState)
-│       └── bionicReading.ts         # TreeWalker-based DOM text node transformation
+│   ├── web/main.tsx               # Web PWA entry point (self-hosted fonts & local adapters)
+│   ├── background/index.ts        # MV3 service worker (message router, alarms, stats)
+│   ├── content/                   # MV3 DOM content script modules
+│   ├── sidepanel/                 # MV3 Side Panel entry
+│   ├── styles/index.css           # Tailwind CSS v4 + bundled @fontsource/inter & opendyslexic
+│   └── utils/                     # Shared extension utilities consuming @assistivereader/core
 │
-└── dist/                            # Production build output (git-ignored)
+├── public/
+│   ├── icon.png                   # Bundled application icon
+│   └── manifest.webmanifest       # Offline-ready Web App Manifest
+│
+├── scripts/
+│   ├── check-no-network.mjs       # Static CI check blocking network APIs, CDNs, and core DOM calls
+│   ├── generate-license-key.mjs   # Offline CLI for signing AR1 Ed25519 license keys
+│   └── generate-icons.mjs         # Icon generation utility
+│
+├── index.html                     # Web PWA HTML entry point
+├── manifest.json                  # Chrome Extension MV3 manifest
+├── vite.config.ts                 # Root Web PWA Vite config (port 3000)
+└── PROJECT_BRIEF.md               # Architecture & privacy constraints
 ```
 
 ---
 
-## 🚀 Features
+## Key Features
 
-### 🧠 Modes Tab — Neurodivergent Personas
+### Profiles & Calibration Wizard
+- **Built-in Customizable Profiles**: One-click toggles for **ADHD Focus Mode**, **Dyslexia Read Mode**, and **Autism Calm Mode**, defined declaratively in `packages/core/src/profiles/schema.ts`.
+- **Interactive Calibration Wizard** (`packages/core/src/wizard.ts` & `packages/ui/src/components/CalibrationWizard.tsx`):
+  1. **Typeface**: Side-by-side testing across bundled `Inter`, `OpenDyslexic`, `Georgia Serif`, and `Fixed-Width Mono`.
+  2. **Spacing & Scale**: Presets (`Compact`, `Balanced`, `Airy & Wide`) plus live fine-tuning sliders for text size (`14–34px`), line height (`1.2–3.0×`), and letter spacing (`0–0.22em`).
+  3. **Surface Color, Contrast & Tint**: `Crisp White`, `Warm Cream Paper`, `Soft Sage Calm`, and `Calm Slate Dark`, optional reading tint overlays (`Yellow`, `Blue`, `Pink`, `Green`, `Peach`, `Aqua`), and reduced-motion preference.
+  4. **Column Width & Review**: Line width (`50ch`, `65ch`, `82ch`), live combined preview with real-time **WCAG 2.2 contrast ratio badge** (`AAA` / `AA`), passage switcher, schema validation, and profile saving.
+- **WCAG 2.2 AA Accessibility**: Radiogroup arrow-key navigation, interactive step indicators (`aria-current="step"`), polite `aria-live` step announcements, visible `:focus-visible` outlines, and `prefers-reduced-motion` support.
 
-| Mode | What it Does |
-|---|---|
-| **🎯 ADHD Focus Mode** | Hides sidebars, ads, and iframes. Dims all content to 30% opacity and reveals on hover — forces single-element focus with a subtle 1.02× scale effect. |
-| **📖 Dyslexia Read Mode** | Applies OpenDyslexic font, cream background (`#fdfbf7`), 2.0 line height, and generous letter/word spacing (`0.12em` / `0.2em`) across the entire page. |
-| **🧘 Autism Calm Mode** | Kills all CSS `animation` and `transition` properties site-wide. Desaturates colors to 60% and applies a gentle 10% sepia tint for a calmer visual experience. |
-| **⚡ Bionic Reading** | Uses a TreeWalker to bold the first ~40% of every word (min 1 char, skips words < 3 chars), creating fixation anchors for faster visual parsing. Fully reversible. |
+### Deterministic Reading Tools
+- **Bionic Reading**: Highlights word openings (~40%) as visual fixation anchors while skipping short words (< 3 chars).
+- **Syllable Splitting (Pro)**: Liang-pattern syllable boundaries rendered as middots (`re·ad`) or alternating color pairs.
+- **Confusable-Letter Tints (Pro)**: Distinct high-contrast color coding for mirrored characters (`b`, `d`, `p`, `q`, customizable).
+- **Reading Flow Views**: Full Article, `1 Sentence` Focus, and `Chunk Cards` with keyboard (`←` / `→`) navigation.
+- **Extractive Key Sentences & Readability (Pro)**: Deterministic TextRank sentence selection and local Flesch Reading Ease / Flesch-Kincaid / Gunning Fog / SMOG metrics.
+- **Bundled Offline Dictionary (Pro)**: Click any word in the reader for instant IPA pronunciation and definition from the bundled lexicon with suffix-stem fallback.
+- **Visual Comfort & Audio**: Reading Ruler (mouse + arrow keys), Dark Mode, SVG `feColorMatrix` CVD correction (`Protanopia`, `Deuteranopia`, `Tritanopia`), tint overlays, saturation control, Media Hider, Table of Contents, and local-voice-first Text-to-Speech.
 
-### 🛠️ Tools Tab — Accessibility Toolkit
-
-| Tool | Description |
-|---|---|
-| **🌙 Dark Mode** | Unified CSS filter approach: applies `invert(0.92) hue-rotate(180deg)` to `<html>`, then counter-inverts all `<img>`, `<video>`, `<canvas>`, `<svg>`, and `<iframe>` elements to preserve their original colors. Compatible with all other filters. |
-| **📄 Reader View** | Strips the page down to article content only using DOM-based extraction heuristics (searches `<article>`, `[role="main"]`, `<main>`, `.post-content`, etc.). Displays a clean centered column with word count, estimated read time, and a gradient scroll progress bar. |
-| **📑 Table of Contents** | Auto-generates a floating, glassmorphic sidebar from all `h1`–`h3` headings. Adds missing IDs, supports smooth-scroll navigation, and includes a close button. Only appears when the page has 2+ qualifying headings. |
-| **📏 Reading Ruler** | A semi-transparent horizontal band (100px) that follows your cursor, dimming the rest of the page to 45% opacity. Supports both **mouse tracking** and **keyboard arrow keys** for accessibility. Clamped to prevent negative heights. |
-| **🔊 Read Aloud (TTS)** | Uses the Web Speech API with `charIndex`-based word highlighting for precise sync. Each word is wrapped in spans, scrolled to view, and highlighted with a yellow gradient. Chrome's 15-second utterance timeout is bypassed with a 10-second pause/resume keepalive loop. Includes a **speed controller (0.5x–2.0x)** slider. |
-| **🖼️ Hide Media** | Blurs all images and videos using `grayscale(1) brightness(0.6) blur(10px)` at 25% opacity. A **MutationObserver** watches for dynamically loaded media (ads, lazy-loaded images) and wraps them with "🖼️ Hover to reveal" overlay labels. Skips icons smaller than 50×50px. |
-
-### 🎨 Color Vision & Typography
-
-| Feature | Description |
-|---|---|
-| **CVD Correction** | SVG `feColorMatrix` filters for Protanopia (red-weak), Deuteranopia (green-weak), and Tritanopia (blue-weak). Injected as inline SVG `<defs>` and applied via `url()` filter reference. |
-| **Color Overlays** | Six tinted screen overlays (Yellow, Blue, Pink, Green, Peach, Aqua) for reading comfort, applied as fixed `<div>` elements with `mix-blend-mode: multiply`. |
-| **Saturation Control** | Slider to adjust page color saturation from 0% (grayscale) to 200% (vivid). Media elements receive an inverse saturation adjustment to retain natural appearance. |
-| **Font Size** | Adjustable from 14px to 32px with proportional heading hierarchy (h1 at 2×, h2 at 1.6×, h3 at 1.35×, etc.). |
-| **Line Height** | Adjustable from 1.2× to 3.0×. |
-| **Letter Spacing** | Adjustable from 0 to 0.2em. |
-| **Contrast Modes** | Three modes: **Normal** (default), **High** (forces white background + black text + underlined blue links), **Inverted** (full page inversion with counter-inverted media). |
-
-### ⏱️ Pomodoro Timer
-
-A fully-featured focus timer built into the Side Panel:
-
-- **Focus / Short Break / Long Break** phases with automatic transitions
-- Duration presets: **15 / 25 / 45 / 60 minutes** (configurable)
-- Short breaks after each session, long break after every 4th session
-- Background `setInterval` timer running in the service worker (survives panel close)
-- Chrome notifications on phase completion
-- Session counter and completion tracking
-- Animated SVG `ProgressRing` with smooth `stroke-dashoffset` transitions
-
-### 📊 Stats & 🎯 Goals
-
-- **Daily Stats**: Focus minutes, break minutes, sessions completed, per-mode activation counts
-- **Weekly Chart**: 7-day bar chart of focus hours with daily archiving
-- **Streak Tracking**: Consecutive days of meeting your daily focus goal, with longest streak record
-- **Configurable Goals**: Focus time presets (30m / 1h / 2h / 4h) and session targets (2 / 4 / 8 / 12)
-- **Confetti Celebration**: Animated confetti burst when daily goal is completed
-- **Auto-reset**: Stats automatically roll over at midnight with yesterday's data archived
+### Focus Timer, Goals & Local Backup
+- **Timestamp-Driven Pomodoro**: Computes remaining seconds from `targetEndTimestamp` so background throttling never causes timer drift; includes automatic short/long breaks (every 4th session).
+- **Stats & Freeze-Day Streaks**: Tracks daily focus/break minutes, sessions, mode activations, 7-day focus history, and freeze-day streak protection.
+- **Local Export & Import**: Export stats as `.csv` or full settings/goals/stats backups as `.json`, and restore locally from file.
 
 ---
 
-## ♿ Quick Access Widget
-
-A floating action button (♿) that appears on every webpage in the bottom-right corner:
-
-| Action | Result |
-|---|---|
-| **Single Click** | Opens a quick-access popup with pill-shaped toggles for Dark Mode, Reader View, Reading Ruler, Read Aloud, and Hide Media |
-| **Double Click** | Opens the full Side Panel via `chrome.sidePanel.open()` with all settings and tools |
-
-The widget uses a 250ms click debounce to distinguish single from double clicks. It stays perfectly in sync with the Side Panel — toggling a feature from either location updates both instantly via `chrome.storage.onChanged`. The menu supports dark-mode-aware styling.
-
----
-
-## 🌙 Extension UI Dark Mode
-
-The Side Panel itself has its own dark mode toggle (🌙/☀️ button in the top-right header), independent from the website Dark Mode tool. It uses a CSS `invert(1) hue-rotate(180deg)` filter on the Side Panel's `<html>` element with counter-inverted images. Your preference is persisted across sessions in `ar_ui_dark`.
-
-A **Minimize button** (➖) sits next to the dark mode toggle. Clicking it calls `window.close()`, closing the Side Panel and returning you to just the floating Quick Access widget.
-
----
-
-## 🛡️ Crash Prevention
-
-Every feature module uses defensive DOM handling:
-
-- **Null-safe injection**: All `document.head` and `document.body` accesses fall back to `document.documentElement` for compatibility with PDFs, XML pages, and other non-standard documents.
-- **Isolated initialization**: Each feature is wrapped in its own `try-catch` block during auto-apply. A failure in one tool never prevents others from loading.
-- **Graceful degradation**: If the Speech API isn't available, TTS silently skips. If a page has fewer than 2 headings, ToC shows nothing.
-- **Mutual exclusions**: Reader View and TTS cannot be active simultaneously — enabling one automatically disables the other to prevent DOM conflicts.
-
----
-
-## 🎨 Design System
-
-### CSS Custom Properties
-
-```css
---ar-primary:        #4f46e5;    /* Indigo 600 */
---ar-primary-light:  #818cf8;    /* Indigo 400 */
---ar-primary-dark:   #3730a3;    /* Indigo 800 */
---ar-accent:         #06b6d4;    /* Cyan 500 */
---ar-success:        #10b981;    /* Emerald 500 */
---ar-warning:        #f59e0b;    /* Amber 500 */
---ar-danger:         #ef4444;    /* Red 500 */
---ar-bg:             #f8fafc;    /* Slate 50 */
---ar-surface:        #ffffff;
---ar-border:         #e2e8f0;    /* Slate 200 */
---ar-text:           #0f172a;    /* Slate 900 */
---ar-text-muted:     #94a3b8;    /* Slate 400 */
-```
-
-### Animations
-
-| Animation | Duration | Usage |
-|---|---|---|
-| `fadeIn` | 0.3s | Generic element entry |
-| `slideUp` | 0.4s | Tab content transitions |
-| `bounceIn` | 0.5s | Celebration effects |
-| `shimmer` | 2s (infinite) | Loading states |
-| `blob` | 7s (infinite alternate) | Header background mesh |
-| `flame` | 0.6s (infinite) | Streak fire emoji |
-| `confettiBurst` | 1s | Goal completion particles |
-| `pulseRing` | — | Progress ring pulsing |
-
-### Glassmorphism
-
-```css
-.glass-card {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(226, 232, 240, 0.6);
-}
-```
-
----
-
-## 🔧 Installation & Development
+## Development & Verification
 
 ### Prerequisites
+- [Node.js](https://nodejs.org/) v18+ (Node 22 recommended for `node:crypto` Ed25519 key generation)
 
-- [Node.js](https://nodejs.org/) (v18+)
-- [Google Chrome](https://www.google.com/chrome/) (v116+ for Side Panel API support)
-
-### Setup
+### Commands
 
 ```bash
-# Clone the repository
-git clone https://github.com/DevRexxxx/AssistiveReader.git
-cd AssistiveReader
-
 # Install dependencies
 npm install
 
-# Build for production
+# Run Web PWA development server (http://localhost:3000)
+npm run dev
+
+# Run pure-core unit tests (profiles, wizard, text, timer, stats, license)
+npm test
+
+# Type-check and enforce zero-network / core isolation rules
+npm run lint
+
+# Standalone no-network & core isolation check
+npm run check:network
+
+# Type-check and build Web PWA production bundle
 npm run build
 ```
 
-### Load in Chrome
-
-1. Open `chrome://extensions/` in Chrome
-2. Enable **Developer mode** (top-right toggle)
-3. Click **Load unpacked**
-4. Select the `dist/` folder from this project
-5. The AssistiveReader icon will appear in your toolbar — click it to open the Side Panel
-
-### Development
+### Generate an Offline Pro License Key (Local Maintainer CLI)
 
 ```bash
-# Start dev server with hot reload
-npm run dev
+node scripts/generate-license-key.mjs --to "Local Evaluator" --tier pro --expiry 2029-12-31
 ```
 
-> **Note**: After running `npm run build`, you must click the 🔄 reload button on `chrome://extensions/` to pick up changes. During `npm run dev`, CRXJS handles hot module replacement automatically.
+### Load Chrome MV3 Extension
+Build the extension bundle with `packages/ext-chromium/vite.config.ts`, then open `chrome://extensions/`, enable **Developer mode**, and click **Load unpacked** on the built output directory.
 
 ---
 
-## 📡 Internal Messaging Protocol
+## Tech Stack
 
-The extension uses a typed message-passing system between layers. Key message types:
-
-### Side Panel → Background → Content Script
-
-| Message Type | Direction | Purpose |
-|---|---|---|
-| `APPLY_PERSONA` / `REMOVE_PERSONA` | SP → BG → CS | Toggle neurodivergent persona CSS |
-| `APPLY_BIONIC` / `REMOVE_BIONIC` | SP → BG → CS | Toggle bionic reading DOM transform |
-
-### Side Panel → Content Script (Direct)
-
-| Message Type | Purpose |
+| Layer | Technology |
 |---|---|
-| `ENABLE_DARK_MODE` / `DISABLE_DARK_MODE` | Toggle unified dark mode filter |
-| `ENABLE_READER_VIEW` / `DISABLE_READER_VIEW` | Toggle clean article reader |
-| `ENABLE_TOC` / `DISABLE_TOC` | Toggle Table of Contents sidebar |
-| `ENABLE_RULER` / `DISABLE_RULER` | Toggle reading ruler |
-| `START_TTS` / `STOP_TTS` / `PAUSE_TTS` / `RESUME_TTS` | Text-to-speech controls |
-| `SET_TTS_RATE` | Adjust TTS playback speed |
-| `ENABLE_MEDIA_HIDER` / `DISABLE_MEDIA_HIDER` | Toggle media blur |
-| `APPLY_TYPOGRAPHY` / `REMOVE_TYPOGRAPHY` | Apply/remove font controls |
-| `APPLY_CVD_FILTER` / `REMOVE_CVD_FILTER` | Toggle color blindness correction |
-| `APPLY_COLOR_OVERLAY` / `REMOVE_COLOR_OVERLAY` | Toggle reading tint |
-| `APPLY_SATURATION` / `REMOVE_SATURATION` | Adjust color saturation |
-
-### Timer Messages (Side Panel ↔ Background)
-
-| Message Type | Direction | Purpose |
-|---|---|---|
-| `TIMER_START` / `TIMER_PAUSE` / `TIMER_RESET` / `TIMER_SKIP` | SP → BG | Timer controls |
-| `TIMER_SET_DURATION` | SP → BG | Change focus duration |
-| `GET_TIMER_STATE` | SP → BG | Query current timer state |
-| `TIMER_TICK` | BG → SP | Real-time countdown update (every 1s) |
-| `TIMER_PHASE_COMPLETE` | BG → SP | Phase transition notification |
-| `STATS_UPDATED` | BG → SP | Refreshed daily stats after timer events |
-
----
-
-## 📝 Version History
-
-| Version | Highlights |
-|---|---|
-| **v5.0** | Minimize button for Side Panel → Quick Access workflow. Version branding update. |
-| **v4.0** | Premium UI overhaul with glassmorphism header, Inter font, animated background blobs, new custom logo, and extension UI dark mode toggle. |
-| **v3.0** | Floating Quick Access Widget with single/double-click behavior, TTS speed controller, crash-proof DOM handling with `try-catch` isolation, MutationObserver-powered media hider, state persistence across page navigations. |
-| **v2.0** | Color Vision suite (Dark Mode, CVD filters, overlays, saturation), Typography controls with heading hierarchy, Media Hider, Reader View with progress bar, Table of Contents, Reading Ruler with keyboard support, TTS with charIndex word highlighting and Chrome keepalive workaround. |
-| **v1.0** | Initial release with ADHD/Dyslexia/Autism personas, Bionic Reading, Pomodoro Timer, Stats & Goals tracking. |
-
----
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-<p align="center">
-  <strong>Built with ❤️ for accessibility</strong><br/>
-  <em>Making the web readable for everyone.</em>
-</p>
+| **UI Framework** | React 18 + TypeScript 5 (`strict`) |
+| **Styling** | Tailwind CSS v4 + Self-Hosted `@fontsource/inter` & `@fontsource/opendyslexic` |
+| **Core Logic** | Pure TypeScript (`packages/core`, zero DOM / `chrome.*` / network) |
+| **Testing** | Node built-in test runner (`node:test` + `tsx`) |
+| **Build** | Vite 6 (Web PWA) + `@crxjs/vite-plugin` (Chrome MV3 extension) |
