@@ -1,0 +1,31 @@
+{
+  "name": "assistive-reader",
+  "version": "5.0.0",
+  "type": "module",
+  "description": "Privacy-first, offline-capable customizable reading support suite for neurodivergent users. Zero AI, zero telemetry.",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 3000",
+    "build": "tsc --noEmit && vite build",
+    "lint": "tsc --noEmit && node scripts/check-no-network.mjs",
+    "test": "npx --yes tsx --test packages/core/src/__tests__/*.test.ts",
+    "check:network": "node scripts/check-no-network.mjs",
+    "preview": "vite preview --host 0.0.0.0 --port 3000"
+  },
+  "dependencies": {
+    "@fontsource/inter": "^5.3.0",
+    "@fontsource/opendyslexic": "^5.3.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@crxjs/vite-plugin": "^2.3.0",
+    "@tailwindcss/vite": "^4.1.7",
+    "@types/chrome": "^0.0.304",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tailwindcss": "^4.1.7",
+    "typescript": "^5.7.3",
+    "vite": "^6.3.4"
+  }
+}

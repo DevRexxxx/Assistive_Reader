@@ -1,0 +1,16 @@
+{
+  "name": "AssistiveReader",
+  "short_name": "AssistiveReader",
+  "description": "Privacy-first, offline-capable customizable reading support. No AI, no telemetry.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    }
+  ]
+}

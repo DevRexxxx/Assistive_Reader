@@ -1,0 +1,140 @@
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+@import "@fontsource/inter/800.css";
+@import "@fontsource/opendyslexic/400.css";
+@import "@fontsource/opendyslexic/700.css";
+@import "tailwindcss";
+
+/* ─── Design System Custom Properties ──────────────────────────────── */
+:root {
+  --ar-primary: #4f46e5;
+  --ar-primary-light: #818cf8;
+  --ar-primary-dark: #3730a3;
+  --ar-accent: #06b6d4;
+  --ar-success: #10b981;
+  --ar-warning: #f59e0b;
+  --ar-danger: #ef4444;
+  --ar-bg: #f8fafc;
+  --ar-surface: #ffffff;
+  --ar-border: #e2e8f0;
+  --ar-text: #0f172a;
+  --ar-text-muted: #64748b;
+  --ar-gradient-start: #4f46e5;
+  --ar-gradient-end: #7c3aed;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* WCAG 2.2 AA visible focus indicator */
+:focus-visible {
+  outline: 2px solid var(--ar-primary);
+  outline-offset: 2px;
+}
+
+/* Extension UI Dark Mode */
+html.ar-ui-dark {
+  filter: invert(1) hue-rotate(180deg);
+  background-color: #0f172a;
+}
+
+html.ar-ui-dark img {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes confettiBurst {
+  0%   { transform: scale(0) rotate(0deg); opacity: 1; }
+  50%  { transform: scale(1.2) rotate(180deg); opacity: 0.8; }
+  100% { transform: scale(0) rotate(360deg); opacity: 0; }
+}
+
+@keyframes flame {
+  0%, 100% { transform: scaleY(1) scaleX(1); }
+  25%      { transform: scaleY(1.1) scaleX(0.95); }
+  50%      { transform: scaleY(0.95) scaleX(1.05); }
+  75%      { transform: scaleY(1.05) scaleX(0.98); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-out both;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.35s ease-out both;
+}
+
+.animate-flame {
+  animation: flame 0.6s ease-in-out infinite;
+  display: inline-block;
+}
+
+.progress-ring-circle {
+  transition: stroke-dashoffset 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.stat-bar {
+  transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.confetti-particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  animation: confettiBurst 1s ease-out forwards;
+  pointer-events: none;
+}
+
+/* Reduced-motion support (WCAG 2.2) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
